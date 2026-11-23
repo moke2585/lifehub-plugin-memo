@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "pageId": "list",
+  "title": "任务清单",
+  "topBarActions": [
+    {
+      "icon": "search",
+      "contentDescription": "搜索任务",
+      "action": {
+        "type": "navigate",
+        "pageId": "search"
+      }
+    },
+    {
+      "icon": "trash",
+      "contentDescription": "回收站",
+      "action": {
+        "type": "navigate",
+        "pageId": "trash"
+      }
+    },
+    {
+      "icon": "add",
+      "contentDescription": "新建任务",
+      "action": {
+        "type": "navigate",
+        "pageId": "edit"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "type": "input",
+      "id": "quick",
+      "label": "快速添加",
+      "placeholder": "例如：明天 18:00 交报告 p5",
+      "action": {
+        "type": "host",
+        "actionId": "com.lifehub.plugin.memo.quick_add"
+      }
+    },
+    {
+      "type": "button",
+      "label": "添加任务",
+      "action": {
+        "type": "host",
+        "actionId": "com.lifehub.plugin.memo.quick_add"
+      }
+    },
+    {
+      "type": "row",
+      "children": [
+        {
+          "type": "selector",
+          "id": "filter",
+          "icon": "filter",
+          "label": "筛选",
+          "options": [
+            {
+              "label": "全部",
+              "value": "all"
+            },
+            {
+              "label": "今天",
+              "value": "today"
+            },
+            {
+              "label": "7 天内",
+              "value": "week"
+            },
+            {
+              "label": "已逾期",
+              "value": "overdue"
+            },
+            {
+              "label": "日常",
+              "value": "daily"
+            }
+          ],
+          "defaultValue": "all",
+          "action": {
+            "type": "host",
+            "actionId": "com.lifehub.plugin.memo.set_filter"
+          }
+        },
+        {
+          "type": "selector",
+          "id": "sort",
+          "icon": "sort",
+          "label": "排序",
+          "options": [
+            {
+              "label": "紧急程度",
+              "value": "urgency"
+            },
+            {
+              "label": "最近",
+              "value": "recent"
+            }
+          ],
+          "defaultValue": "urgency",
+          "action": {
+            "type": "host",
+            "actionId": "com.lifehub.plugin.memo.set_sort"
+          }
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "text": "快速添加支持“今天/明天/周X/11月20日”和 p1–p5；左滑删除，右滑完成。"
+    },
+    {
+      "type": "recordList",
+      "sourceId": "memo_entries",
+      "emptyTitle": "暂无任务",
+      "emptyMessage": "新建一个任务，设置截止日期，或作为日常任务持续跟进。",
+      "emptyActionLabel": "新建任务",
+      "emptyAction": {
+        "type": "navigate",
+        "pageId": "edit"
+      }
+    }
+  ]
+}

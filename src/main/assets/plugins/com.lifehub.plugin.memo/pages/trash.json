@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "pageId": "trash",
+  "title": "回收站",
+  "nodes": [
+    {
+      "type": "text",
+      "text": "删除的任务保留 30 天，到期自动清理。"
+    },
+    {
+      "type": "recordList",
+      "sourceId": "memo_trash",
+      "emptyTitle": "回收站为空",
+      "emptyMessage": "左滑删除的任务会在这里保留 30 天。"
+    },
+    {
+      "type": "button",
+      "label": "清空回收站",
+      "emphasis": "secondary",
+      "action": {
+        "type": "host",
+        "actionId": "com.lifehub.plugin.memo.empty_trash",
+        "confirm": {
+          "title": "清空回收站",
+          "message": "将彻底删除回收站中的所有任务，此操作无法恢复。",
+          "confirmLabel": "清空",
+          "cancelLabel": "取消"
+        }
+      }
+    }
+  ]
+}

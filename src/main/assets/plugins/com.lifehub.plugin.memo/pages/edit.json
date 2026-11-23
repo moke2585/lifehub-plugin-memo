@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "pageId": "edit",
+  "title": "任务编辑",
+  "nodes": [
+    {
+      "type": "input",
+      "id": "title",
+      "label": "标题",
+      "required": true,
+      "placeholder": "要完成什么",
+      "autofocus": true
+    },
+    {
+      "type": "emojiPicker",
+      "id": "emoji",
+      "label": "图标",
+      "collapsedCount": 10,
+      "options": [
+        "📝",
+        "📌",
+        "📚",
+        "💼",
+        "🏃",
+        "🛒",
+        "🎯",
+        "💡",
+        "❤️",
+        "🍳",
+        "🧹",
+        "🛏️",
+        "🚿",
+        "🧺",
+        "🐶",
+        "🐱",
+        "👶",
+        "🎓",
+        "🏋️",
+        "🧘",
+        "💊",
+        "🏥",
+        "💰",
+        "🧾",
+        "📞",
+        "✈️",
+        "🚗",
+        "🏠",
+        "🛠️",
+        "🎨",
+        "🎮",
+        "🎵",
+        "🎬",
+        "📷",
+        "🌱",
+        "🌷",
+        "☕",
+        "🍺",
+        "🎁",
+        "⭐"
+      ],
+      "defaultValue": "📝"
+    },
+    {
+      "type": "input",
+      "id": "body",
+      "label": "任务说明",
+      "multiline": true,
+      "placeholder": "补充细节（可选）"
+    },
+    {
+      "type": "chips",
+      "id": "priority",
+      "label": "优先级（5 最高）",
+      "options": [
+        {
+          "label": "1",
+          "value": "1"
+        },
+        {
+          "label": "2",
+          "value": "2"
+        },
+        {
+          "label": "3",
+          "value": "3"
+        },
+        {
+          "label": "4",
+          "value": "4"
+        },
+        {
+          "label": "5",
+          "value": "5"
+        }
+      ],
+      "defaultValue": "3"
+    },
+    {
+      "type": "dateWheel",
+      "id": "deadline",
+      "label": "截止日期",
+      "allowEmpty": true,
+      "emptyLabel": "不设置（日常任务）"
+    },
+    {
+      "type": "text",
+      "text": "不设置截止日期即为日常任务；日常任务在列表中点击一次可提升一档倍率。"
+    },
+    {
+      "type": "button",
+      "label": "保存",
+      "action": {
+        "type": "host",
+        "actionId": "com.lifehub.plugin.memo.save"
+      }
+    }
+  ]
+}

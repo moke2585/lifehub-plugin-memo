@@ -1,0 +1,68 @@
+{
+  "pluginId": "com.lifehub.plugin.memo",
+  "name": "任务清单",
+  "version": "1.1.0",
+  "description": "管理任务截止日期与优先级，自动计算紧急指数，支持完成、回收站和日常任务倍率。",
+  "publisher": "LifeHub",
+  "icon": "memo",
+  "minHostVersion": 1,
+  "pluginSdkVersion": 1,
+  "capabilities": [
+    {
+      "id": "ui.action",
+      "reason": "处理新增、编辑、完成、删除、搜索、排序与回收站操作"
+    },
+    {
+      "id": "storage.private",
+      "reason": "保存任务内容、截止日期、优先级与回收站数据"
+    }
+  ],
+  "entryPage": "list",
+  "pages": [
+    {
+      "id": "list",
+      "title": "任务清单",
+      "file": "pages/list.json"
+    },
+    {
+      "id": "edit",
+      "title": "任务编辑",
+      "file": "pages/edit.json"
+    },
+    {
+      "id": "trash",
+      "title": "回收站",
+      "file": "pages/trash.json"
+    },
+    {
+      "id": "search",
+      "title": "搜索任务",
+      "file": "pages/search.json"
+    }
+  ],
+  "dataSchemaVersion": 1,
+  "quickCreate": {
+    "pageId": "edit",
+    "label": "新建任务"
+  },
+  "homeWidgets": [
+    {
+      "id": "today_tasks",
+      "type": "summary",
+      "title": "今日任务",
+      "size": "small",
+      "priority": 100,
+      "sourceId": "memo_summary",
+      "action": {
+        "type": "navigate",
+        "pageId": "list",
+        "params": {
+          "filter": "today"
+        }
+      }
+    }
+  ],
+  "search": {
+    "sourceId": "memo_search"
+  }
+}
