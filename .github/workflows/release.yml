@@ -20,7 +20,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      BUILD_ROOT: ${{ runner.temp }}/lifehub-build
+      BUILD_ROOT: ${{ github.workspace }}/../lifehub-build
       TAG: ${{ github.event.inputs.tag || github.ref_name }}
       HOST_REF: ${{ github.event.inputs.host_ref || 'main' }}
     steps:
