@@ -99,7 +99,7 @@ jobs:
           APKSIGNER=$(find "${ANDROID_HOME}/build-tools" -type f -name apksigner | sort -V | tail -n 1)
           test -n "$APKSIGNER"
           "$APKSIGNER" verify --print-certs "$APK" | tee "$RUNNER_TEMP/apksigner.txt"
-          SIGNER=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/apksigner.txt" | head -n 1)
+          SIGNER=$(sed -n 's/.*certificate SHA-256 digest: //p' "$RUNNER_TEMP/apksigner.txt" | head -n 1)
           test -n "$SIGNER"
           sha256sum "$APK" > "$RUNNER_TEMP/sha256.txt"
           SHA=$(cut -d' ' -f1 "$RUNNER_TEMP/sha256.txt")
