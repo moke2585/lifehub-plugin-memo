@@ -112,7 +112,7 @@ jobs:
             --url "$REPO_URL/releases/download/$TAG/memo-apk-release.apk" \
             --repo "$REPO_URL" \
             --tag "$TAG" \
-            --commit "$GITHUB_SHA" \
+            --commit "$(git rev-parse HEAD)" \
             --out "$RUNNER_TEMP/plugin-release.json"
 
       - name: Publish GitHub Release
