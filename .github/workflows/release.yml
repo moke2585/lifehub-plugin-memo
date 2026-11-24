@@ -1,0 +1,136 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "已存在的 v* 标签"
+        required: true
+      host_ref:
+        description: "宿主仓库 ref"
+        required: false
+        default: main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_ROOT: ${{ runner.temp }}/lifehub-build
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      HOST_REF: ${{ github.event.inputs.host_ref || 'main' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          fetch-depth: 0
+
+      - name: Checkout host repository
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.repository_owner }}/lifehub
+          ref: ${{ env.HOST_REF }}
+          token: ${{ secrets.LIFEHUB_PLUGIN_REPOS_TOKEN || github.token }}
+          path: build-src/lifehub
+
+      - name: Checkout ledger plugin repository
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.repository_owner }}/lifehub-plugin-ledger
+          token: ${{ secrets.LIFEHUB_PLUGIN_REPOS_TOKEN || github.token }}
+          path: build-src/ledger
+
+      - name: Checkout travel plugin repository
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.repository_owner }}/lifehub-plugin-travel
+          token: ${{ secrets.LIFEHUB_PLUGIN_REPOS_TOKEN || github.token }}
+          path: build-src/travel
+
+      - name: Arrange sibling build tree
+        run: |
+          mkdir -p "$BUILD_ROOT/lifehub-plugin-memo"
+          git archive HEAD | tar -x -C "$BUILD_ROOT/lifehub-plugin-memo"
+          mv build-src/lifehub "$BUILD_ROOT/lifehub"
+          mv build-src/ledger "$BUILD_ROOT/lifehub-plugin-ledger"
+          mv build-src/travel "$BUILD_ROOT/lifehub-plugin-travel"
+          chmod +x "$BUILD_ROOT/lifehub/gradlew"
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Validate tag and versions
+        run: python3 .github/scripts/check_versions.py
+
+      - name: Decode release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.LIFEHUB_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "LIFEHUB_KEYSTORE_BASE64 is not configured" >&2
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/lifehub-release.keystore"
+          test -s "$RUNNER_TEMP/lifehub-release.keystore"
+
+      - name: Build signed plugin APK
+        working-directory: ${{ env.BUILD_ROOT }}/lifehub
+        env:
+          LIFEHUB_RELEASE_STORE_FILE: ${{ runner.temp }}/lifehub-release.keystore
+          LIFEHUB_RELEASE_STORE_PASSWORD: ${{ secrets.LIFEHUB_RELEASE_STORE_PASSWORD }}
+          LIFEHUB_RELEASE_KEY_ALIAS: ${{ secrets.LIFEHUB_RELEASE_KEY_ALIAS }}
+          LIFEHUB_RELEASE_KEY_PASSWORD: ${{ secrets.LIFEHUB_RELEASE_KEY_PASSWORD }}
+        run: ./gradlew :plugins:memo-apk:assembleRelease --stacktrace
+
+      - name: Verify APK and write metadata
+        env:
+          APK: ${{ env.BUILD_ROOT }}/lifehub-plugin-memo/apk/build/outputs/apk/release/memo-apk-release.apk
+          REPO_URL: https://github.com/${{ github.repository }}
+        run: |
+          test -f "$APK"
+          APKSIGNER=$(find "${ANDROID_HOME}/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --print-certs "$APK" | tee "$RUNNER_TEMP/apksigner.txt"
+          SIGNER=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/apksigner.txt" | head -n 1)
+          test -n "$SIGNER"
+          sha256sum "$APK" > "$RUNNER_TEMP/sha256.txt"
+          SHA=$(cut -d' ' -f1 "$RUNNER_TEMP/sha256.txt")
+          echo "$SHA  memo-apk-release.apk" > "$RUNNER_TEMP/memo-apk-release.apk.sha256"
+          python3 .github/scripts/write_release_metadata.py \
+            --manifest "$BUILD_ROOT/lifehub-plugin-memo/src/main/assets/plugins/com.lifehub.plugin.memo/manifest.json" \
+            --gradle "$BUILD_ROOT/lifehub-plugin-memo/apk/build.gradle.kts" \
+            --apk "$APK" \
+            --signer "$SIGNER" \
+            --url "$REPO_URL/releases/download/$TAG/memo-apk-release.apk" \
+            --repo "$REPO_URL" \
+            --tag "$TAG" \
+            --commit "$GITHUB_SHA" \
+            --out "$RUNNER_TEMP/plugin-release.json"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APK: ${{ env.BUILD_ROOT }}/lifehub-plugin-memo/apk/build/outputs/apk/release/memo-apk-release.apk
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              "$APK" \
+              "$RUNNER_TEMP/plugin-release.json" \
+              "$RUNNER_TEMP/memo-apk-release.apk.sha256" \
+              --clobber
+          else
+            gh release create "$TAG" \
+              "$APK" \
+              "$RUNNER_TEMP/plugin-release.json" \
+              "$RUNNER_TEMP/memo-apk-release.apk.sha256" \
+              --title "$TAG" \
+              --notes "任务清单插件 $TAG"
+          fi

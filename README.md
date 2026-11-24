@@ -101,6 +101,18 @@ cd ..\lifehub
 - Debug：`apk/build/outputs/apk/debug/memo-apk-debug.apk`
 - Release：`apk/build/outputs/apk/release/memo-apk-release.apk`
 
+## 发布
+
+推送 `v*` 标签（或手动触发）运行 [.github/workflows/release.yml](.github/workflows/release.yml)：
+
+1. 检出宿主 `main` 与 ledger/travel 到同级构建目录；
+2. 校验标签、`apk/build.gradle.kts` 的 `versionName` 与 manifest 的 `version` 一致；
+3. 使用与宿主相同的签名配置构建 `:plugins:memo-apk:assembleRelease`；
+4. 用 `apksigner` 验签，生成 `plugin-release.json`（索引字段 + tag/commit）；
+5. 上传 APK、`.sha256` 与 `plugin-release.json` 到 GitHub Release。
+
+需要配置 Secrets：`LIFEHUB_KEYSTORE_BASE64`、`LIFEHUB_RELEASE_STORE_PASSWORD`、`LIFEHUB_RELEASE_KEY_ALIAS`、`LIFEHUB_RELEASE_KEY_PASSWORD`。索引仓库的扫描工作流会读取 `plugin-release.json`，复核 SHA-256、包名、版本与证书指纹后开 PR。
+
 ## 安装
 
 ```powershell
